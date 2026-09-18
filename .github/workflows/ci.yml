@@ -22,7 +22,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # -------------------------------------------------------------
-      # DEV BRANCH: Build and tag dev image (Fast Feedback)
+      # DEV BRANCH: Build and tag dev image
       # -------------------------------------------------------------
       - name: Build & Push Dev Image
         if: github.ref == 'refs/heads/dev'
@@ -64,7 +64,7 @@ jobs:
         with:
           image-ref: 'ngemsdev/profil-app:latest'
           format: 'table'
-          exit-code: '1'
+          exit-code: '1' 
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
 
