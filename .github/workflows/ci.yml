@@ -71,5 +71,5 @@ jobs:
       - name: Push Production Image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push ngemsdev/profil-app:latest-1
+          docker push ngemsdev/profil-app:latest
           docker push ngemsdev/profil-app:${{ github.sha }}
