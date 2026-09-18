@@ -21,4 +21,4 @@ jobs:
     - name: Build the Docker image
       run: docker build -t ngemsdev/profil-app:latest .
     - name: Push to Dockerhub
-      run: docker push docker push ngemsdev/profil-app:latest
+      run: docker push ngemsdev/profil-app:latest
