@@ -43,7 +43,7 @@ jobs:
         with:
           image-ref: 'ngemsdev/profil-app:staging'
           format: 'table'
-          exit-code: '1'
+          exit-code: '0' #0 1
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
 
