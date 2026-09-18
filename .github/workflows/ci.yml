@@ -1,11 +1,14 @@
-name: Docker Image CI
+name: Docker Image CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev", "staging", "main" ]
+  pull_request:
+    branches: [ "dev", "staging", "main" ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,8 +21,55 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build the Docker image
-        run: docker build -t ngemsdev/profil-app:latest .
+      # -------------------------------------------------------------
+      # DEV BRANCH: Build and tag dev image (Fast Feedback)
+      # -------------------------------------------------------------
+      - name: Build & Push Dev Image
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          docker build -t ngemsdev/profil-app:dev .
+          docker push ngemsdev/profil-app:dev
 
-      - name: Push to Docker Hub
-        run: docker push ngemsdev/profil-app:latest
+      # -------------------------------------------------------------
+      # STAGING BRANCH: Build, Scan, and Tag Staging Image
+      # -------------------------------------------------------------
+      - name: Build Staging Image
+        if: github.ref == 'refs/heads/staging'
+        run: docker build -t ngemsdev/profil-app:staging .
+
+      - name: Scan Staging Image (Trivy)
+        if: github.ref == 'refs/heads/staging'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ngemsdev/profil-app:staging'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Staging Image
+        if: github.ref == 'refs/heads/staging'
+        run: docker push ngemsdev/profil-app:staging
+
+      # -------------------------------------------------------------
+      # MAIN BRANCH: Production Build, Full Security Scan & Push Latest
+      # -------------------------------------------------------------
+      - name: Build Production Image
+        if: github.ref == 'refs/heads/main'
+        run: docker build -t ngemsdev/profil-app:latest -t ngemsdev/profil-app:${{ github.sha }} .
+
+      - name: Scan Production Image (Trivy)
+        if: github.ref == 'refs/heads/main'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ngemsdev/profil-app:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Production Image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker push ngemsdev/profil-app:latest
+          docker push ngemsdev/profil-app:${{ github.sha }}
